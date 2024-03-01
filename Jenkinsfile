@@ -22,7 +22,8 @@ pipeline {
         
         stage('Deploy') {
             steps {
-                sh 'pm2 restart 0'
+                sh 'pm2 stop index.js'
+                sh 'pm2 start index.js'
             }
         }
     }
