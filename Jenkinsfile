@@ -14,21 +14,15 @@ pipeline {
             }
         }
         
-        stage('Build') {
-            steps {
-                sh 'npm run build'
-            }
-        }
-        
         stage('Test') {
             steps {
-                sh 'npm run lint'
+                sh 'npm test test/index.js'
             }
         }
         
         stage('Deploy') {
             steps {
-                sh 'npm run deploy'
+                sh 'pm2 restart index.js'
             }
         }
     }
