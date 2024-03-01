@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'your_repository_url'
+                git 'https://github.com/suyognepal/devops-assessment.git'
             }
         }
         
@@ -35,15 +35,13 @@ pipeline {
     
     post {
         always {
-            // Cleanup steps, if needed
+            cleanWs()
         }
         success {
-            // Actions to take on successful build
-            // For example, sending notifications
+            cleanWs()
         }
         failure {
-            // Actions to take on build failure
-            // For example, sending notifications or rolling back deployments
+            cleanWs()
         }
     }
 }
