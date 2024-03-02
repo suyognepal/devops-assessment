@@ -14,16 +14,28 @@ pipeline {
             }
         }
         
-        stage('Check for node_modules') {
+        stage('Git Pull') {
+            steps {
+                // Change to the specified directory and perform git pull
+                dir('/opt/devops-task') {
+                    sh 'git pull origin master'
+                }
+            }
+        }        
+        
+        stage('Compare package.json') {
             steps {
                 script {
-                    if (!fileExists('node_modules')) {
-                        // If node_modules directory doesn't exist, run npm install and stash it
-                        sh 'npm install'
-                        stash(name: 'node_modules', includes: 'node_modules/**')
+                    def cloneChecksum = sh(script: 'md5sum package.json', returnStdout: true).trim().split()[0]
+                    def optChecksum = sh(script: 'md5sum /opt/devops-task/package.json', returnStdout: true).trim().split()[0]
+                    
+                    if (cloneChecksum != optChecksum) {
+                        // If checksums are different, run npm install in /opt/devops-task
+                        dir('/opt/devops-task') {
+                            sh 'npm install'
+                        }
                     } else {
-                        // If node_modules directory exists, use the cached version
-                        unstash('node_modules')
+                        // If checksums are same, use cached node_modules directory
                         echo 'Using cached node_modules directory'
                     }
                 }
@@ -32,8 +44,10 @@ pipeline {
         
         stage('Test') {
             steps {
-                // Run tests in parallel using a test runner if supported
-                sh 'npm test test/index.js'
+                // Run tests in /opt/devops-task directory
+                dir('/opt/devops-task') {
+                    sh 'npm test test/index.js'
+                }
             }
         }
         
@@ -46,7 +60,7 @@ pipeline {
                 }
             }
         }
-    }
+    } // Add the missing closing curly brace for the 'stages' section
     
     post {
         always {
