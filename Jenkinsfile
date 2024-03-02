@@ -4,6 +4,7 @@ pipeline {
     options {
         // Cache npm dependencies
         skipDefaultCheckout(true)
+        timeout(time: 1, unit: 'HOURS')
     }
     
     stages {
@@ -13,9 +14,19 @@ pipeline {
             }
         }
         
-        stage('Install Dependencies') {
+        stage('Check for node_modules') {
             steps {
-                sh 'npm ci'
+                script {
+                    if (!fileExists('node_modules')) {
+                        // If node_modules directory doesn't exist, run npm install and stash it
+                        sh 'npm install'
+                        stash(name: 'node_modules', includes: 'node_modules/**')
+                    } else {
+                        // If node_modules directory exists, use the cached version
+                        unstash('node_modules')
+                        echo 'Using cached node_modules directory'
+                    }
+                }
             }
         }
         
@@ -39,12 +50,15 @@ pipeline {
     
     post {
         always {
+            // Clean up
             cleanWs()
         }
         success {
+            // Clean up
             cleanWs()
         }
         failure {
+            // Clean up
             cleanWs()
         }
     }
