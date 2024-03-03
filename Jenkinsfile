@@ -2,7 +2,6 @@ pipeline {
     agent any
     
     options {
-        // Cache npm dependencies
         skipDefaultCheckout(true)
         timeout(time: 1, unit: 'HOURS')
     }
@@ -16,7 +15,6 @@ pipeline {
         
         stage('Git Pull') {
             steps {
-                // Change to the specified directory and perform git pull
                 dir('/opt/devops-task') {
                     sh 'git pull origin master'
                 }
@@ -30,12 +28,10 @@ pipeline {
                     def optChecksum = sh(script: 'md5sum /opt/devops-task/package.json', returnStdout: true).trim().split()[0]
                     
                     if (cloneChecksum != optChecksum) {
-                        // If checksums are different, run npm install in /opt/devops-task
                         dir('/opt/devops-task') {
                             sh 'npm install'
                         }
                     } else {
-                        // If checksums are same, use cached node_modules directory
                         echo 'Using cached node_modules directory'
                     }
                 }
@@ -44,7 +40,6 @@ pipeline {
         
         stage('Test') {
             steps {
-                // Run tests in /opt/devops-task directory
                 dir('/opt/devops-task') {
                     sh 'npm test test/index.js'
                 }
@@ -60,21 +55,36 @@ pipeline {
                 }
             }
         }
-    } // Add the missing closing curly brace for the 'stages' section
+    } 
     
     post {
         always {
-            // Clean up
             cleanWs()
         }
         success {
-            // Clean up
-            cleanWs()
+            emailext (
+                to: 'suyog.nepal10@gmail.com',
+                subject: 'Pipeline Success Notification',
+                body: 'Your pipeline has succeeded. Congratulations!',
+                attachLog: true
+            )
         }
         failure {
-            // Clean up
-            cleanWs()
+            emailext (
+                to: 'suyog.nepal10@gmail.com',
+                subject: 'Pipeline Failure Notification',
+                body: 'Your pipeline has failed. Please investigate.',
+                attachLog: true
+            )
         }
+        aborted {
+            emailext (
+                to: 'suyog.nepal10@gmail.com',
+                subject: 'Pipeline Failure Notification',
+                body: 'Your pipeline was aborted',
+                attachLog: true
+            )
+        }        
     }
 }
 
