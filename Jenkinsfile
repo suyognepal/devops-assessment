@@ -50,9 +50,15 @@ pipeline {
             parallel {
                 stage('Deploy Dev') {
                     steps {
-                        sh "pm2 restart all"
+                        sh "pm2 restart development"
                     }
                 }
+                stage('Deploy Stage') {
+                    steps {
+                        sh "pm2 restart staging"
+                    }
+                }
+                
             }
         }
     } 
