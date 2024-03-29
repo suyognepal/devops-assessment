@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                bash 'git clone --depth 1 --branch master https://github.com/suyognepal/devops-assessment.git .'
+                shell 'git clone --depth 1 --branch master https://github.com/suyognepal/devops-assessment.git .'
             }
         }
         
